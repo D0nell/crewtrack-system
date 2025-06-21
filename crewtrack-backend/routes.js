@@ -5,18 +5,35 @@ const db = require('./db');
 
 // Register
 router.post('/register', async (req, res) => {
-  const { name, email, password, role } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const { name, email, password, role, adminCode } = req.body;
 
-  db.query(
-    'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)',
-    [name, email, hashedPassword, role],
-    (err, results) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({ message: 'User registered successfully!' });
-    }
-  );
+  // Admin code verification
+  const ADMIN_CODES = {
+    supervisor: "SV1234",
+    manager: "HM2024"
+  };
+
+  // If the role requires verification and the code is wrong
+  if ((role === "supervisor" || role === "manager") && adminCode !== ADMIN_CODES[role]) {
+    return res.status(403).json({ error: `Invalid verification code for ${role}` });
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    db.query(
+      'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)',
+      [name, email, hashedPassword, role],
+      (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'User registered successfully!' });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ error: 'Server error during registration.' });
+  }
 });
+
 
 // Login
 router.post('/login', (req, res) => {
