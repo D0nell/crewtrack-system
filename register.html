@@ -9,103 +9,97 @@
     rel="stylesheet"
   />
   <style>
-    body {
-      background-color: #f5f7fa;
-    }
-    .register-box {
-      max-width: 500px;
-      margin: 60px auto;
-      padding: 30px;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .register-box h2 {
-      margin-bottom: 20px;
-      text-align: center;
-    }
+    body { background: linear-gradient(135deg, #667eea, #764ba2); font-family: system-ui; min-height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; }
+    .register-container { max-width: 500px; width: 100%; margin: 2rem; }
+    .register-box { background: white; border-radius: 20px; padding: 3rem; box-shadow: 0 25px 80px rgba(0, 0, 0, 0.15); position: relative; overflow: hidden; }
+    .register-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(135deg, #667eea, #764ba2); }
+    .register-box h2 { font-weight: 700; font-size: 2rem; color: #1e293b; margin-bottom: 2rem; text-align: center; }
+    .form-label { font-weight: 600; color: #374151; margin-bottom: 0.5rem; }
+    .form-control, .form-select { border: 2px solid #e5e7eb; border-radius: 12px; padding: 0.75rem 1rem; font-size: 1rem; transition: all 0.3s ease; }
+    .form-control:focus, .form-select:focus { border-color: #667eea; box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25); }
+    .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); border: none; padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 600; font-size: 1rem; transition: all 0.3s ease; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); background: linear-gradient(135deg, #5a6fd8, #6b4190); }
+    .text-decoration-none { color: #667eea; font-weight: 500; transition: all 0.3s ease; }
+    .text-decoration-none:hover { color: #5a6fd8; text-decoration: underline !important; }
+    .form-text { color: #64748b; font-size: 0.875rem; }
+    .admin-code-field { background: linear-gradient(135deg, #f8fafc, #f1f5f9); border-radius: 12px; padding: 1rem; margin-top: 1rem; border: 1px solid #e2e8f0; }
+    .mb-3 { margin-bottom: 1.5rem !important; }
+    .mt-3 { margin-top: 1.5rem !important; }
+    @media (max-width: 576px) { .register-box { padding: 2rem; margin: 1rem; } .register-box h2 { font-size: 1.75rem; } }
   </style>
 </head>
 <body>
-
-  <div class="register-box">
-    <h2>Register for CrewTrack</h2>
-    <form id="registerForm">
-      <div class="mb-3">
-        <label for="name" class="form-label">Full Name</label>
-        <input type="text" name="name" class="form-control" id="name" required />
-      </div>
-
-      <div class="mb-3">
-        <label for="email" class="form-label">Email address</label>
-        <input type="email" name="email" class="form-control" id="email" required />
-      </div>
-
-      <div class="mb-3">
-        <label for="password" class="form-label">Create Password</label>
-        <input type="password" name="password" class="form-control" id="password" required />
-      </div>
-
-      <div class="mb-3">
-  <label for="role" class="form-label">Select Role</label>
-  <select name="role" id="role" class="form-select" required onchange="handleRoleChange()">
-    <option value="" disabled selected>Choose your role</option>
-    <option value="housekeeper">Housekeeper</option>
-    <option value="supervisor">Supervisor</option>
-    <option value="manager">House Manager</option>
-  </select>
-</div>
-
-<!-- Hidden admin code field -->
-<div class="mb-3" id="adminCodeField" style="display: none;">
-  <label for="adminCode" class="form-label">Authorization Code</label>
-  <input type="text" id="adminCode" class="form-control" placeholder="Enter verification code" />
-  <div class="form-text text-muted">Required for supervisors and managers only.</div>
-</div>
-
-
-      <button type="submit" class="btn btn-success w-100">Register</button>
-
-      <div class="text-center mt-3">
-        <small>Already have an account? <a href="login.html">Login here</a></small>
-      </div>
-      <div class="text-center mt-2">
-        <a href="index.html" class="text-decoration-none">&larr; Back to Home</a>
-      </div>
-      
-    </form>
+  <div class="register-container">
+    <div class="register-box">
+      <h2><i class="bi bi-person-plus" style="color: #667eea;"></i> Register for CrewTrack</h2>
+      <form id="registerForm">
+        <div class="mb-3">
+          <label for="name" class="form-label"><i class="bi bi-person"></i> Full Name</label>
+          <input type="text" name="name" class="form-control" id="name" placeholder="Enter your full name" required>
+        </div>
+        <div class="mb-3">
+          <label for="email" class="form-label"><i class="bi bi-envelope"></i> Email address</label>
+          <input type="email" name="email" class="form-control" id="email" placeholder="Enter your email" required>
+        </div>
+        <div class="mb-3">
+          <label for="password" class="form-label"><i class="bi bi-lock"></i> Create Password</label>
+          <input type="password" name="password" class="form-control" id="password" placeholder="Create a strong password" required>
+        </div>
+        <div class="mb-3">
+          <label for="role" class="form-label"><i class="bi bi-person-badge"></i> Select Role</label>
+          <select name="role" id="role" class="form-select" required onchange="handleRoleChange()">
+            <option value="" disabled selected>Choose your role</option>
+            <option value="housekeeper">Housekeeper</option>
+            <option value="supervisor">Supervisor</option>
+            <option value="manager">House Manager</option>
+          </select>
+        </div>
+        <div class="mb-3 admin-code-field" id="adminCodeField" style="display: none;">
+          <label for="adminCode" class="form-label"><i class="bi bi-shield-lock"></i> Authorization Code</label>
+          <input type="text" id="adminCode" class="form-control" placeholder="Enter verification code">
+          <div class="form-text">Required for supervisors and managers only.</div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-person-check"></i> Register</button>
+        <div class="text-center mt-3">
+          <small>Already have an account? <a href="login.html" class="text-decoration-none">Login here</a></small>
+        </div>
+        <div class="text-center mt-3">
+          <a href="index.html" class="text-decoration-none"><i class="bi bi-arrow-left"></i> Back to Home</a>
+        </div>
+      </form>
+    </div>
   </div>
-</body>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-  function handleRoleChange() {
-    const role = document.getElementById("role").value;
-    const adminCodeField = document.getElementById("adminCodeField");
-    adminCodeField.style.display = (role === "supervisor" || role === "manager") ? "block" : "none";
-  }
-
-  document.getElementById("registerForm").addEventListener("submit", async function (e) {
-    e.preventDefault();
-
-    const name = document.getElementById("name").value;
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const role = document.getElementById("role").value;
-    const adminCode = document.getElementById("adminCode").value;
-
-    const res = await fetch("http://localhost:5000/api/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password, role, adminCode }),
-    });
-
-    const data = await res.json();
-
-    if (res.ok) {
-      alert(data.message);
-      window.location.href = "login.html";
-    } else {
-      alert("Error: " + data.error);
+    function handleRoleChange() {
+      const role = document.getElementById("role").value;
+      const adminCodeField = document.getElementById("adminCodeField");
+      adminCodeField.style.display = (role === "supervisor" || role === "manager") ? "block" : "none";
     }
-  });
-</script>
+    document.getElementById("registerForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const role = document.getElementById("role").value;
+      const adminCode = document.getElementById("adminCode").value;
+      try {
+        const res = await fetch("http://localhost:5000/api/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password, role, adminCode }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert(data.message);
+          window.location.href = "login.html";
+        } else {
+          alert("Error: " + data.error);
+        }
+      } catch (error) {
+        alert("Network error. Please try again.");
+      }
+    });
+  </script>
+</body>
 </html>
