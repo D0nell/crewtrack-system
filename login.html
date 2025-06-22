@@ -8,126 +8,111 @@
     href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
     rel="stylesheet"
   />
-  <style>
-    body {
-      background-color: #f5f7fa;
-    }
-    .login-box {
-      max-width: 400px;
-      margin: 80px auto;
-      padding: 30px;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .login-box h2 {
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    .form-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 10px;
-    }
+   <style>
+    body { background: linear-gradient(135deg, #667eea, #764ba2); font-family: system-ui; min-height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; }
+    .login-container { max-width: 450px; width: 100%; margin: 2rem; }
+    .login-box { background: white; border-radius: 20px; padding: 3rem; box-shadow: 0 25px 80px rgba(0, 0, 0, 0.15); position: relative; overflow: hidden; }
+    .login-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(135deg, #667eea, #764ba2); }
+    .login-box h2 { font-weight: 700; font-size: 2rem; color: #1e293b; margin-bottom: 2rem; text-align: center; }
+    .form-label { font-weight: 600; color: #374151; margin-bottom: 0.5rem; }
+    .form-control, .form-select { border: 2px solid #e5e7eb; border-radius: 12px; padding: 0.75rem 1rem; font-size: 1rem; transition: all 0.3s ease; }
+    .form-control:focus, .form-select:focus { border-color: #667eea; box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25); }
+    .input-group .btn { border: 2px solid #e5e7eb; border-left: none; border-radius: 0 12px 12px 0; }
+    .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); border: none; padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 600; font-size: 1rem; transition: all 0.3s ease; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); background: linear-gradient(135deg, #5a6fd8, #6b4190); }
+    .btn-outline-secondary { border: 2px solid #d1d5db; color: #6b7280; border-radius: 12px; font-weight: 500; transition: all 0.3s ease; }
+    .btn-outline-secondary:hover { background: #f3f4f6; border-color: #9ca3af; color: #374151; }
+    .text-decoration-none { color: #667eea; font-weight: 500; transition: all 0.3s ease; }
+    .text-decoration-none:hover { color: #5a6fd8; text-decoration: underline !important; }
+    .toast { border-radius: 12px; }
+    .mb-3 { margin-bottom: 1.5rem !important; }
+    .mt-3 { margin-top: 1.5rem !important; }
+    @media (max-width: 576px) { .login-box { padding: 2rem; margin: 1rem; } .login-box h2 { font-size: 1.75rem; } }
   </style>
 </head>
 <body>
-
-  <!-- Toast Placeholder (not used currently, but kept for future use) -->
   <div class="position-fixed top-0 end-0 p-3" style="z-index: 1055">
     <div id="loginToast" class="toast align-items-center text-white bg-danger border-0" role="alert">
       <div class="d-flex">
-        <div class="toast-body">
-          Invalid login credentials. Please try again.
-        </div>
+        <div class="toast-body">Invalid login credentials. Please try again.</div>
         <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
       </div>
     </div>
   </div>
-
-  <!-- Login Form -->
-  <div class="login-box">
-    <h2>Login to CrewTrack</h2>
-    <form id="loginForm">
-      <div class="mb-3">
-        <label for="email" class="form-label">Email address</label>
-        <input type="email" name="email" class="form-control" id="email" required />
-      </div>
-
-      <div class="mb-3">
-        <label for="password" class="form-label">Password</label>
-        <div class="input-group">
-          <input type="password" name="password" class="form-control" id="password" required />
-          <button type="button" class="btn btn-outline-secondary" onclick="togglePassword()">Show</button>
+  <div class="login-container">
+    <div class="login-box">
+      <h2><i class="bi bi-shield-lock" style="color: #667eea;"></i> Login to CrewTrack</h2>
+      <form id="loginForm">
+        <div class="mb-3">
+          <label for="email" class="form-label"><i class="bi bi-envelope"></i> Email address</label>
+          <input type="email" name="email" class="form-control" id="email" placeholder="Enter your email" required>
         </div>
-      </div>
-
-      <div class="mb-3">
-        <label for="role" class="form-label">Select Role</label>
-        <select name="role" class="form-select" required>
-          <option value="housekeeper">Housekeeper</option>
-          <option value="supervisor">Supervisor</option>
-          <option value="manager">House Manager</option>
-        </select>
-      </div>
-
-      <button type="submit" class="btn btn-primary w-100">Login</button>
-
-    <div class="text-center mt-3">
-  <a href="register.html" class="text-decoration-none">Don't have an account? Register</a>
-</div>
-
-    </form>
-
-    <!-- Back to Home link -->
-    <div class="text-center mt-3">
-      <a href="index.html" class="btn btn-outline-secondary w-100">&larr; Back to Home</a>
+        <div class="mb-3">
+          <label for="password" class="form-label"><i class="bi bi-lock"></i> Password</label>
+          <div class="input-group">
+            <input type="password" name="password" class="form-control" id="password" placeholder="Enter your password" required>
+            <button type="button" class="btn btn-outline-secondary" onclick="togglePassword()">
+              <i class="bi bi-eye" id="toggleIcon"></i>
+            </button>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="role" class="form-label"><i class="bi bi-person-badge"></i> Select Role</label>
+          <select name="role" class="form-select" required>
+            <option value="housekeeper">Housekeeper</option>
+            <option value="supervisor">Supervisor</option>
+            <option value="manager">House Manager</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-box-arrow-in-right"></i> Login</button>
+        <div class="text-center mt-3">
+          <a href="register.html" class="text-decoration-none">Don't have an account? Register</a>
+        </div>
+        <div class="text-center mt-3">
+          <a href="index.html" class="btn btn-outline-secondary w-100"><i class="bi bi-arrow-left"></i> Back to Home</a>
+        </div>
+      </form>
     </div>
   </div>
-
-  <!-- Bootstrap & JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
   <script>
     function togglePassword() {
       const input = document.getElementById("password");
-      const btn = input.nextElementSibling;
+      const icon = document.getElementById("toggleIcon");
       if (input.type === "password") {
         input.type = "text";
-        btn.innerText = "Hide";
+        icon.className = "bi bi-eye-slash";
       } else {
         input.type = "password";
-        btn.innerText = "Show";
+        icon.className = "bi bi-eye";
       }
     }
-
     document.getElementById("loginForm").addEventListener("submit", async function (e) {
       e.preventDefault();
-
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
       const role = document.querySelector("select[name='role']").value;
-
-      const res = await fetch("http://localhost:5000/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, role }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        alert("Login successful! Redirecting to dashboard...");
-        if (data.user.role === "housekeeper") {
-          window.location.href = "housekeeper-dashboard.html";
-        } else if (data.user.role === "supervisor") {
-          window.location.href = "supervisor-dashboard.html";
+      try {
+        const res = await fetch("http://localhost:5000/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password, role }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert("Login successful! Redirecting to dashboard...");
+          if (data.user.role === "housekeeper") {
+            window.location.href = "housekeeper-dashboard.html";
+          } else if (data.user.role === "supervisor") {
+            window.location.href = "supervisor-dashboard.html";
+          } else {
+            window.location.href = "housemanager-dashboard.html";
+          }
         } else {
-          window.location.href = "housemanager-dashboard.html";
+          alert("Login failed: " + data.error);
         }
-      } else {
-        alert("Login failed: " + data.error);
+      } catch (error) {
+        alert("Network error. Please try again.");
       }
     });
   </script>
