@@ -36,15 +36,43 @@ CrewTrack is a web-based housekeeping shift management system designed for unive
 ## Project Structure
 
 CrewTrack/
-├── index.html ← Landing page
-├── login.html ← User login
-├── register.html ← Account registration
-├── housemanager-dashboard.html ← House manager dashboard
-├── crewtrack-backend/ ← Node.js backend folder
-│ ├── server.js ← Main Express server
-│ ├── db.js ← MySQL connection file
-│ └── routes.js ← Login & registration routes
-└── README.md
+├── index.html → Landing page
+├── login.html → Login page
+├── register.html → User registration
+├── features.html → Features breakdown
+├── housekeeper-dashboard.html → Housekeeper main panel
+├── supervisor-dashboard.html → Supervisor dashboard
+├── housemanager-dashboard.html → House Manager dashboard
+├── myshifts.html → Housekeeper shifts view
+├── attendance.html → Mark attendance
+├── history.html → View shift/attendance history
+├── crewtrack-backend/
+│ ├── server.js → Main Express.js server
+│ ├── db.js → MySQL DB connection
+│ └── routes.js → Registration/Login logic
+└── README.md → This file
+
+---
+
+## 🧾 Database Tables
+
+| Table      | Description                                |
+|------------|--------------------------------------------|
+| `users`    | Stores user details & roles                |
+| `shifts`   | Shift assignments and zones                |
+| `tasks`    | Individual tasks under each shift          |
+| `attendance` | Tracks check-ins and check-outs         |
+| `payroll`  | Weekly salary calculations & approvals     |
+| `approvals`| (Optional) Tracks who approved payroll     |
+
+---
+
+## 🔐 Verification & Security
+
+- Supervisors and House Managers must enter an **authorization code** during registration.
+  - Supervisor Code: `SV1234`
+  - House Manager Code: `HM2024`
+- Passwords are securely hashed using `bcrypt`.
 
 
 ---
