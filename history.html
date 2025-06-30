@@ -5,28 +5,42 @@
   <title>Shift History | CrewTrack</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
   <style>
     body {
-      background-color: #f8f9fa;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      font-family: system-ui;
+      color: #1e293b;
+      min-height: 100vh;
+      margin: 0;
     }
+
     .dashboard-header {
-      background-color: #004080;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9));
       color: white;
-      padding: 1.5rem 0;
+      padding: 3rem 1rem;
       text-align: center;
     }
+
+    .dashboard-header h2 {
+      font-weight: 600;
+      font-size: 2.5rem;
+    }
+
     .section-card {
       background: white;
-      border-radius: 8px;
-      padding: 20px;
-      margin: 20px auto;
+      border-radius: 20px;
+      padding: 2rem;
+      margin: 1.5rem auto;
       max-width: 750px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
       transition: transform 0.3s ease;
     }
+
     .section-card:hover {
       transform: translateY(-4px);
     }
+
     .fab {
       position: fixed;
       bottom: 25px;
@@ -42,8 +56,33 @@
       cursor: pointer;
       z-index: 999;
     }
+
     .fab:hover {
       background-color: #003366;
+    }
+
+    .btn-back {
+      color: white;
+      text-decoration: none;
+      padding: 0.75rem 1.5rem;
+      border: 2px solid white;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 500;
+    }
+
+    .btn-back:hover {
+      background: white;
+      color: #667eea;
+    }
+
+    .no-history {
+      text-align: center;
+      margin-top: 3rem;
+      color: #f1f5f9;
     }
   </style>
 </head>
@@ -51,32 +90,68 @@
 
   <!-- Header -->
   <div class="dashboard-header">
-    <h2>📅 Shift History</h2>
+    <h2><i class="bi bi-journal-check"></i> Shift History</h2>
     <p>Review your completed shifts and attendance records</p>
+    <a href="housekeeper-dashboard.html" class="btn-back mt-3"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
   </div>
 
-  <!-- History Records -->
-  <div class="section-card">
-    <h5>🗓️ June 3, 2025</h5>
-    <p><strong>Location:</strong> Admin Block</p>
-    <p><strong>Time:</strong> 9:00 AM - 12:00 PM</p>
-    <p><strong>Status:</strong> ✅ Completed</p>
-  </div>
-
-  <div class="section-card">
-    <h5>🗓️ June 5, 2025</h5>
-    <p><strong>Location:</strong> Library 2nd Floor</p>
-    <p><strong>Time:</strong> 1:00 PM - 4:00 PM</p>
-    <p><strong>Status:</strong> ✅ Completed</p>
-  </div>
-
-  <div class="text-center mb-4">
-    <a href="housekeeper-dashboard.html" class="btn btn-outline-secondary">&larr; Back to Dashboard</a>
+  <!-- Shift History Container -->
+  <div class="container" id="historyContainer">
+    <!-- Shift cards will be injected here -->
   </div>
 
   <!-- Scroll to Top -->
   <button class="fab" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">↑</button>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    async function loadHistory() {
+      const currentUser = JSON.parse(localStorage.getItem('user'));
+      const userId = currentUser?.user_id;
+      const container = document.getElementById('historyContainer');
+
+      if (!userId) {
+        container.innerHTML = `<div class="no-history text-danger">User not logged in.</div>`;
+        return;
+      }
+
+      try {
+        const res = await fetch(`http://localhost:5000/api/attendance/history?user_id=${userId}`);
+
+        const history = await res.json();
+
+        if (!Array.isArray(history) || history.length === 0) {
+          container.innerHTML = `
+            <div class="no-history">
+              <i class="bi bi-calendar-x fs-1"></i>
+              <p>No completed shifts yet.</p>
+            </div>
+          `;
+          return;
+        }
+
+        history.forEach(record => {
+          const card = document.createElement('div');
+          card.className = 'section-card';
+          card.innerHTML = `
+            <h5><i class="bi bi-calendar-event"></i> ${new Date(record.shift_date).toDateString()}</h5>
+            <p><strong>Location:</strong> ${record.zone_assigned}</p>
+            <p><strong>Time:</strong> ${record.shift_start} - ${record.shift_end}</p>
+            <p><strong>Status:</strong> ✅ Completed</p>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        container.innerHTML = `
+          <div class="no-history text-danger">
+            <i class="bi bi-exclamation-triangle"></i> Error loading history: ${err.message}
+          </div>
+        `;
+      }
+    }
+
+    window.onload = loadHistory;
+  </script>
+
 </body>
 </html>

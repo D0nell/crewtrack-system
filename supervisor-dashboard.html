@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Supervisor Dashboard | CrewTrack</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <style>
     body { background: linear-gradient(135deg, #667eea, #764ba2); font-family: system-ui; min-height: 100vh; margin: 0; }
     .dashboard-header { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); color: white; padding: 2rem 0; margin-bottom: 2rem; border-radius: 0 0 20px 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); }
     .dashboard-header h2 { font-weight: 700; font-size: 2.5rem; color: white; margin-bottom: 0.5rem; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); }
@@ -16,19 +17,17 @@
     .section-card:hover { transform: translateY(-8px); box-shadow: 0 35px 100px rgba(0, 0, 0, 0.2); }
     .section-card h4 { font-weight: 700; font-size: 1.5rem; color: #1e293b; margin-bottom: 1rem; }
     .section-card p { color: #64748b; font-size: 1rem; line-height: 1.6; margin-bottom: 1.5rem; }
-    .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); border: none; padding: 0.75rem 2rem; border-radius: 12px; font-weight: 600; font-size: 1rem; transition: all 0.3s ease; color: white; }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); background: linear-gradient(135deg, #5a6fd8, #6b4190); }
-    .btn-outline-primary { border: 2px solid #667eea; color: #667eea; background: transparent; padding: 0.75rem 2rem; border-radius: 12px; font-weight: 600; font-size: 1rem; transition: all 0.3s ease; }
-    .btn-outline-primary:hover { background: linear-gradient(135deg, #667eea, #764ba2); border-color: transparent; color: white; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); }
-    .btn-outline-success { border: 2px solid #10b981; color: #10b981; background: transparent; padding: 0.75rem 2rem; border-radius: 12px; font-weight: 600; font-size: 1rem; transition: all 0.3s ease; }
-    .btn-outline-success:hover { background: linear-gradient(135deg, #10b981, #059669); border-color: transparent; color: white; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); }
+    .btn-primary, .btn-action { background: linear-gradient(135deg, #667eea, #764ba2); border: none; padding: 0.75rem 2rem; border-radius: 12px; font-weight: 600; font-size: 1rem; transition: all 0.3s ease; color: white; }
+    .btn-primary:hover, .btn-action:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); background: linear-gradient(135deg, #5a6fd8, #6b4190); }
+    .btn-outline-primary, .btn-outline-success { border: 2px solid #667eea; color: #667eea; background: transparent; padding: 0.75rem 2rem; border-radius: 12px; font-weight: 600; font-size: 1rem; transition: all 0.3s ease; }
+    .btn-outline-primary:hover, .btn-outline-success:hover { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-color: transparent; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); }
     .btn-outline-secondary { border: 2px solid rgba(255, 255, 255, 0.5); color: white; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 600; font-size: 1rem; transition: all 0.3s ease; text-decoration: none; }
     .btn-outline-secondary:hover { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.8); color: white; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); text-decoration: none; }
     .fab { position: fixed; bottom: 30px; right: 30px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 50%; width: 60px; height: 60px; font-size: 24px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); cursor: pointer; z-index: 999; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; }
     .fab:hover { background: linear-gradient(135deg, #5a6fd8, #6b4190); transform: translateY(-4px) scale(1.1); box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4); }
     .back-to-home { text-align: center; margin: 2rem 0; }
-    @media (max-width: 768px) { .main-container { padding: 0 1rem; } .section-card { padding: 2rem; margin-bottom: 1.5rem; } .dashboard-header { padding: 1.5rem 0; } .dashboard-header h2 { font-size: 2rem; } .fab { width: 50px; height: 50px; bottom: 20px; right: 20px; } }
-    @media (max-width: 576px) { .section-card { padding: 1.5rem; } .dashboard-header h2 { font-size: 1.75rem; } .btn-primary, .btn-outline-primary, .btn-outline-success { padding: 0.6rem 1.5rem; font-size: 0.9rem; } }
+    form .form-control { border-radius: 10px; }
+    @media (max-width: 768px) { .main-container { padding: 0 1rem; } .section-card { padding: 2rem; } .dashboard-header h2 { font-size: 2rem; } .fab { width: 50px; height: 50px; bottom: 20px; right: 20px; } }
   </style>
 </head>
 <body>
@@ -40,32 +39,367 @@
   <div class="back-to-home">
     <a href="index.html" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back to Home</a>
   </div>
+
   <!-- Main Content -->
   <div class="main-container">
     <!-- Assign Shifts -->
     <div class="section-card">
       <h4><i class="bi bi-calendar-check" style="color: #667eea; margin-right: 0.5rem;"></i>Assign Shifts</h4>
-      <p>Distribute upcoming cleaning shifts to housekeepers and monitor assignments. Keep your team organized and ensure proper coverage for all scheduled tasks.</p>
-      <button class="btn btn-primary"><i class="bi bi-plus-circle"></i> Assign Now</button>
+      <p>Distribute upcoming cleaning shifts to housekeepers and monitor assignments.</p>
+
+      <form id="assignShiftForm">
+        <div class="mb-3">
+          <label for="userId" class="form-label">Housekeeper ID</label>
+          <input type="number" class="form-control" id="userId" required />
+        </div>
+        <div class="mb-3">
+          <label for="shiftDate" class="form-label">Date</label>
+          <input type="date" class="form-control" id="shiftDate" required />
+        </div>
+        <div class="mb-3">
+          <label for="shiftStart" class="form-label">Start Time</label>
+          <input type="time" class="form-control" id="shiftStart" required />
+        </div>
+        <div class="mb-3">
+          <label for="shiftEnd" class="form-label">End Time</label>
+          <input type="time" class="form-control" id="shiftEnd" required />
+        </div>
+        <div class="mb-3">
+          <label for="zone" class="form-label">Zone Assigned</label>
+          <input type="text" class="form-control" id="zone" required />
+        </div>
+        <button type="submit" class="btn btn-action"><i class="bi bi-send-check"></i> Assign Shift</button>
+      </form>
     </div>
+
     <!-- Monitor Attendance -->
     <div class="section-card">
       <h4><i class="bi bi-geo-alt" style="color: #667eea; margin-right: 0.5rem;"></i>Attendance Monitoring</h4>
-      <p>Track check-ins, check-outs, and housekeeper attendance in real time. Monitor location data and ensure compliance with scheduled work hours.</p>
-      <button class="btn btn-outline-primary"><i class="bi bi-eye"></i> View Attendance</button>
+      <p>Track check-ins, check-outs, and housekeeper attendance in real time.</p>
+      <button class="btn btn-outline-primary" onclick="scrollToAttendance()">
+  <i class="bi bi-eye"></i> View Attendance
+</button>
+
     </div>
-    <!-- Review Shift Completion -->
-    <div class="section-card">
-      <h4><i class="bi bi-check-circle" style="color: #667eea; margin-right: 0.5rem;"></i>Review Shift Completion</h4>
-      <p>Check which tasks are completed and approve timesheets before payroll. Verify work quality and provide feedback to maintain high standards.</p>
-      <button class="btn btn-outline-success"><i class="bi bi-clipboard-check"></i> Review</button>
-    </div>
+
+    <!-- Attendance Table -->
+<div class="section-card" id="attendance-section">
+  <h4><i class="bi bi-clock-history" style="color: #764ba2; margin-right: 0.5rem;"></i>Attendance Records</h4>
+  <form id="attendanceFilterForm" class="row g-3 mb-3">
+  <div class="col-md-4">
+    <label for="filterUser" class="form-label">Housekeeper</label>
+    <select id="filterUser" class="form-select" required>
+      <option value="">All</option>
+    </select>
   </div>
-  <!-- Floating Scroll-To-Top Button -->
-  <button class="fab" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })" title="Scroll to top">
+  <div class="col-md-3">
+    <label for="startDate" class="form-label">Start Date</label>
+    <input type="date" id="startDate" class="form-control">
+  </div>
+  <div class="col-md-3">
+    <label for="endDate" class="form-label">End Date</label>
+    <input type="date" id="endDate" class="form-control">
+  </div>
+  <div class="col-md-2 d-flex align-items-end">
+    <button type="submit" class="btn btn-primary w-100">
+      <i class="bi bi-funnel"></i> Filter
+    </button>
+  </div>
+</form>
+
+  <p>Real-time log of staff check-ins and check-outs</p>
+
+  <button class="btn btn-outline-success mb-3" onclick="exportTableToCSV()">
+  <i class="bi bi-download"></i> Export Attendance CSV
+</button>
+
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover">
+      <thead class="table-light">
+        <tr>
+          <th>Staff</th>
+          <th>Zone</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Check In</th>
+          <th>Check Out</th>
+        </tr>
+      </thead>
+      <tbody id="attendanceTableBody">
+        <!-- Data will be injected here -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+    <!-- Review Shift Completion -->
+   <div class="section-card">
+  <h4>
+    <i class="bi bi-check-circle" style="color: #667eea; margin-right: 0.5rem;"></i>
+    Review Shift Completion
+  </h4>
+  <p>Check which tasks were completed and monitor shift performance.</p>
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover" id="completedShiftsTable">
+      <thead class="table-light">
+        <tr>
+          <th>Housekeeper</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Zone</th>
+          <th>Tasks Completed</th>
+          <th>Tasks Pending</th>
+        </tr>
+      </thead>
+      <tbody id="completedShiftsBody">
+        <!-- Completed shift data will be injected here -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+
+
+  <!-- Scroll To Top -->
+  <button class="fab" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">
     <i class="bi bi-arrow-up"></i>
   </button>
-  <!-- Bootstrap Script -->
+
+  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Shift Assignment Logic -->
+  <script>
+    document.getElementById('assignShiftForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const payload = {
+        user_id: document.getElementById('userId').value,
+        shift_date: document.getElementById('shiftDate').value,
+        shift_start: document.getElementById('shiftStart').value,
+        shift_end: document.getElementById('shiftEnd').value,
+        zone_assigned: document.getElementById('zone').value
+      };
+
+      try {
+        const res = await fetch('http://localhost:5000/api/shifts/assign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          alert(data.message);
+          document.getElementById('assignShiftForm').reset();
+        } else {
+          alert('Error: ' + data.error);
+        }
+      } catch (err) {
+        alert('Something went wrong while assigning shift.');
+        console.error(err);
+      }
+    });
+  </script>
+
+  <script>
+  async function loadAttendanceRecords() {
+    try {
+      const res = await fetch('http://localhost:5000/api/attendance/all');
+      const data = await res.json();
+
+      const tbody = document.getElementById('attendanceTableBody');
+      tbody.innerHTML = '';
+
+      data.forEach(entry => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${entry.user_name}</td>
+            <td>${entry.zone_assigned}</td>
+            <td>${new Date(entry.shift_date).toLocaleDateString()}</td>
+            <td>${entry.shift_start} - ${entry.shift_end}</td>
+            <td>${entry.check_in ? new Date(entry.check_in).toLocaleTimeString() : '—'}</td>
+            <td>${entry.check_out ? new Date(entry.check_out).toLocaleTimeString() : '—'}</td>
+          </tr>
+        `;
+      });
+
+    } catch (error) {
+      console.error("Error loading attendance records:", error);
+    }
+  }
+
+  function exportTableToCSV(filename = 'attendance_report.csv') {
+  const table = document.querySelector('#attendanceTableBody');
+  if (!table) return;
+
+  const rows = Array.from(document.querySelectorAll('table tr'));
+  const csvContent = rows.map(row => {
+    const cols = Array.from(row.querySelectorAll('th, td'));
+    return cols.map(col => `"${col.innerText}"`).join(',');
+  }).join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.setAttribute('download', filename);
+  link.click();
+}
+
+  async function populateUsers() {
+  try {
+    const res = await fetch('http://localhost:5000/api/users/staff');
+    const data = await res.json();
+    const dropdown = document.getElementById('filterUser');
+
+    data.forEach(user => {
+      const opt = document.createElement('option');
+      opt.value = user.user_id;
+      opt.textContent = `${user.name} (${user.role})`;
+      dropdown.appendChild(opt);
+    });
+  } catch (err) {
+    console.error("Failed to load user list:", err);
+  }
+}
+
+document.getElementById('attendanceFilterForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+
+  const user_id = document.getElementById('filterUser').value;
+  const start_date = document.getElementById('startDate').value;
+  const end_date = document.getElementById('endDate').value;
+
+  try {
+    const res = await fetch(`http://localhost:5000/api/attendance/all?user_id=${user_id}&start=${start_date}&end=${end_date}`);
+    const data = await res.json();
+    const tbody = document.getElementById('attendanceTableBody');
+    tbody.innerHTML = "";
+
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No records found.</td></tr>`;
+    } else {
+      data.forEach(entry => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${entry.user_name}</td>
+            <td>${entry.zone_assigned}</td>
+            <td>${new Date(entry.shift_date).toLocaleDateString()}</td>
+            <td>${entry.shift_start} - ${entry.shift_end}</td>
+            <td>${entry.check_in ? new Date(entry.check_in).toLocaleTimeString() : '—'}</td>
+            <td>${entry.check_out ? new Date(entry.check_out).toLocaleTimeString() : '—'}</td>
+          </tr>
+        `;
+      });
+    }
+  } catch (err) {
+    console.error("Error filtering attendance:", err);
+  }
+});
+
+
+  // Auto-load attendance when the page loads
+ window.onload = () => {
+  loadAttendanceRecords();
+  fetchCompletedShifts();
+  populateUsers(); // <-- add this
+};
+
+</script>
+
+<script>
+async function fetchCompletedShifts() {
+  try {
+    const res = await fetch('http://localhost:5000/api/shifts/completed');
+    const data = await res.json();
+
+    const container = document.getElementById('completedShifts');
+    if (data.length === 0) {
+      container.innerHTML = '<p class="text-muted text-center">📭 No completed shifts found.</p>';
+      return;
+    }
+
+    data.forEach(shift => {
+      const taskList = shift.tasks.map(task =>
+        `<li class="list-group-item d-flex justify-content-between align-items-center">
+          ${task.description}
+          <span class="badge ${task.completed ? 'bg-success' : 'bg-secondary'}">
+            ${task.completed ? 'Done' : 'Pending'}
+          </span>
+        </li>`
+      ).join('');
+
+      container.innerHTML += `
+        <div class="card mb-4">
+          <div class="card-body">
+            <h5 class="card-title">${shift.shift_date} | ${shift.zone_assigned}</h5>
+            <p><strong>Time:</strong> ${shift.shift_start} - ${shift.shift_end}</p>
+            <p><strong>Housekeeper:</strong> ${shift.housekeeper}</p>
+            <ul class="list-group">${taskList}</ul>
+          </div>
+        </div>
+      `;
+    });
+  } catch (err) {
+    console.error("Failed to load completed shifts:", err);
+  }
+}
+
+</script>
+
+<script>
+  function scrollToAttendance() {
+    const section = document.getElementById('attendance-section');
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+</script>
+
+<script>
+  // Function to populate completed shifts into the existing table body
+  function renderCompletedShifts(data) {
+    const tbody = document.getElementById('completedShiftsBody');
+    tbody.innerHTML = '';
+
+    data.forEach(shift => {
+      const row = document.createElement('tr');
+
+      row.innerHTML = `
+      <td>${shift.user_name}</td>
+      <td>${shift.shift_date}</td>
+      <td>${shift.shift_start} - ${shift.shift_end}</td>
+      <td>${shift.zone_assigned}</td>
+      <td>${shift.check_in || 'N/A'}</td>
+      <td>${shift.check_out || 'N/A'}</td>
+    `;
+
+
+      tbody.appendChild(row);
+    });
+  }
+
+  // Fetch real data when the page loads
+  document.addEventListener('DOMContentLoaded', () => {
+  fetch('http://localhost:5000/shifts/completed') // use full URL
+    .then(response => response.json())
+    .then(data => {
+      console.log('Fetched data:', data); // 👈 log here
+      renderCompletedShifts(data);
+    })
+    .catch(error => {
+      console.error('Error loading completed shifts:', error);
+      const tbody = document.getElementById('completedShiftsBody');
+      tbody.innerHTML = `<tr><td colspan="6" class="text-danger">Failed to load shift data.</td></tr>`;
+    });
+});
+
+</script>
+
+
 </body>
 </html>

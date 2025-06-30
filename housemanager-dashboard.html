@@ -1,3 +1,4 @@
+<!-- housemanager-dashboard.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,6 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>House Manager Dashboard | CrewTrack</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       background: linear-gradient(135deg, #667eea, #764ba2);
@@ -18,351 +22,285 @@
       color: white;
       padding: 3rem 1rem;
       text-align: center;
-      backdrop-filter: blur(10px);
     }
-    .header h2 {
-      font-weight: 600;
-      font-size: 2.5rem;
-      margin-bottom: 0.5rem;
-    }
-    .header p {
-      font-size: 1.1rem;
-      opacity: 0.9;
-      margin-bottom: 1rem;
-    }
-    .container {
-      max-width: 800px;
-      margin: -2rem auto 2rem;
-      padding: 0 1rem;
-    }
+    .container { max-width: 1000px; margin: -2rem auto 2rem; padding: 0 1rem; }
     .section-card {
-      background: white;
-      border-radius: 20px;
-      padding: 2.5rem;
-      margin-bottom: 2rem;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-      transition: transform 0.3s ease;
-      position: relative;
+      background: white; border-radius: 20px; padding: 2rem;
+      margin-bottom: 2rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+      position: relative; transition: transform 0.3s ease;
     }
-    .section-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      border-radius: 20px 20px 0 0;
-    }
-    .section-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.15);
-    }
-    .section-card:nth-child(even)::before {
-      background: linear-gradient(135deg, #f093fb, #764ba2);
-    }
-    .section-card:nth-child(3n)::before {
-      background: linear-gradient(135deg, #667eea, #f093fb);
-    }
+    .section-card:hover { transform: translateY(-5px); }
     .section-card h4 {
-      font-weight: 600;
-      font-size: 1.5rem;
-      color: #1e293b;
-      margin-bottom: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .section-card h4 i {
-      font-size: 1.75rem;
-    }
-    .section-card p {
-      color: #64748b;
-      font-size: 1rem;
-      margin-bottom: 1.5rem;
-      line-height: 1.6;
+      font-weight: 600; font-size: 1.5rem;
+      margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;
     }
     .btn-action {
-      font-weight: 600;
-      padding: 1rem 2rem;
-      border-radius: 12px;
-      border: none;
-      color: white;
-      transition: all 0.3s ease;
-      min-width: 160px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      font-weight: 600; padding: 0.6rem 1.2rem;
+      border-radius: 10px; background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white; border: none; transition: 0.3s ease;
     }
     .btn-action:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-      color: white;
-      text-decoration: none;
-    }
-    .section-card:nth-child(even) .btn-action {
-      background: linear-gradient(135deg, #f093fb, #764ba2);
-    }
-    .section-card:nth-child(3n) .btn-action {
-      background: linear-gradient(135deg, #667eea, #f093fb);
-    }
-    .btn-back {
-      color: white;
-      text-decoration: none;
-      padding: 0.75rem 1.5rem;
-      border: 2px solid white;
-      border-radius: 12px;
-      transition: all 0.3s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-weight: 500;
-    }
-    .btn-back:hover {
-      background: white;
-      color: #667eea;
-      text-decoration: none;
+      background: linear-gradient(135deg, #5a67d8, #6b21a8);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
     }
     .fab {
-      position: fixed;
-      bottom: 2rem;
-      right: 2rem;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      font-size: 1.2rem;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-      cursor: pointer;
-      z-index: 999;
-      transition: all 0.3s ease;
+      position: fixed; bottom: 2rem; right: 2rem; width: 50px; height: 50px;
+      background: linear-gradient(135deg, #667eea, #764ba2); color: white;
+      font-size: 1.5rem; border-radius: 50%; border: none;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2); cursor: pointer;
     }
-    .fab:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
-    }
-    @media (max-width: 768px) {
-      .header h2 { font-size: 2rem; }
-      .section-card { padding: 2rem 1.5rem; margin: 1rem; }
-      .container { padding: 0 0.5rem; }
-    }
+    .fab:hover { transform: translateY(-3px); }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 </head>
 <body>
-
   <div class="header">
-    <h2><i class="bi bi-house"></i> House Manager Dashboard</h2>
-    <p>Overview, approve payroll, and access system-wide reports</p>
-    <a href="index.html" class="btn-back"><i class="bi bi-arrow-left"></i> Back to Home</a>
+    <h2>🏠 House Manager Dashboard</h2>
+    <p>Staff management, payroll, and reports</p>
+
+       <div class="container my-3 text-center">
+  <a href="index.html" class="btn btn-outline-light">
+    <i class="bi bi-arrow-left"></i> Back to Home
+  </a>
+</div>
   </div>
 
-  <div class="container">
-    <!-- Staff Section -->
-    <div class="section-card">
-      <h4><i class="bi bi-people" style="color: #667eea;"></i> Staff Overview</h4>
-      <p>Review the current list of housekeepers and supervisors along with their assigned duties.</p>
-      <button class="btn-action" onclick="fetchStaff()"><i class="bi bi-eye"></i> View Staff</button>
 
-      <div class="table-responsive mt-4">
+
+  <div class="container">
+
+
+
+
+
+    <!-- Staff Overview -->
+    <div class="section-card">
+      <h4>👥 Staff Overview</h4>
+      <button class="btn-action mb-3" onclick="fetchStaff()">View Staff</button>
+      <div class="table-responsive">
         <table class="table table-bordered table-hover">
           <thead class="table-light">
-            <tr>
-              <th>User ID</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Role</th>
-            </tr>
+            <tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th></tr>
           </thead>
-          <tbody id="staffTableBody">
-            <!-- Staff data will be injected here -->
-          </tbody>
+          <tbody id="staffTableBody"></tbody>
         </table>
       </div>
     </div>
 
     <!-- Payroll Section -->
     <div class="section-card">
-      <h4><i class="bi bi-credit-card" style="color: #f093fb;"></i> Payroll Approval</h4>
-      <p>Inspect pending payroll summaries submitted by supervisors and approve for processing.</p>
-      <button class="btn-action" onclick="fetchPayroll()"><i class="bi bi-check-circle"></i> Review Payroll</button>
+      <h4>💰 Payroll Management</h4>
+      
+      <form id="generatePayrollForm" class="row g-3 mb-3">
+        <div class="col-md-4">
+          <label for="startWeek" class="form-label">Start Date</label>
+          <input type="date" class="form-control" id="startWeek" required>
+        </div>
+        <div class="col-md-4">
+          <label for="endWeek" class="form-label">End Date</label>
+          <input type="date" class="form-control" id="endWeek" required>
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+          <button type="submit" class="btn-action w-100">Generate Payroll</button>
+        </div>
+      </form>
 
-<div class="table-responsive mt-4">
-  <table class="table table-bordered table-hover">
-    <thead class="table-light">
-      <tr>
-        <th>Payroll ID</th>
-        <th>Staff</th>
-        <th>Email</th>
-        <th>Week Start</th>
-        <th>Week End</th>
-        <th>Total Hours</th>
-        <th>Total Pay</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody id="payrollTableBody">
-      <!-- Payroll records go here -->
-    </tbody>
-  </table>
-</div>
+      <div class="mb-3 d-flex gap-2">
+        <select id="payrollStatus" class="form-select w-auto">
+          <option value="">All</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+        </select>
+        <button class="btn-action" onclick="fetchPayroll()">Review Payroll</button>
+        <button class="btn btn-outline-dark" onclick="exportPayroll()">Export Payroll</button>
+      </div>
 
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th><th>Name</th><th>Email</th><th>Start</th><th>End</th>
+              <th>Rate (KES)</th><th>Hours</th><th>Pay</th><th>Status</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="payrollTableBody"></tbody>
+        </table>
+        <small class="text-muted">*Pay = Total Hours × Hourly Rate (KES)</small>
+      </div>
     </div>
 
-    <!-- Reports Section -->
+    <!-- Reports -->
     <div class="section-card">
-  <h4><i class="bi bi-bar-chart" style="color: #764ba2;"></i> System Reports</h4>
-  <p>Access charts and summaries for shift coverage, attendance trends, and productivity.</p>
+      <h4>📊 System Reports</h4>
+      <canvas id="shiftChart" class="my-4"></canvas>
+      <canvas id="attendanceChart" class="my-4"></canvas>
+    </div>
 
-  <canvas id="shiftChart" class="my-4"></canvas>
-  <canvas id="attendanceChart" class="my-4"></canvas>
-  
-</div>
+  </div>
 
+  <button class="fab" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
 
-  <!-- Back to Top Button -->
-  <button class="fab" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to Top"><i class="bi bi-arrow-up"></i></button>
-
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-  <!-- Animation on Load -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      document.querySelectorAll('.section-card').forEach((card, index) => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(30px)';
-        setTimeout(() => {
-          card.style.transition = 'all 0.6s ease';
-          card.style.opacity = '1';
-          card.style.transform = 'translateY(0)';
-        }, index * 200);
-      });
-    });
-  </script>
-
-  <!-- Fetch Staff Logic -->
   <script>
     async function fetchStaff() {
-      try {
-        const res = await fetch('http://localhost:5000/api/users/staff');
-        if (!res.ok) throw new Error('Failed to fetch staff data');
-
-        const data = await res.json();
-        const table = document.getElementById('staffTableBody');
-        table.innerHTML = "";
-
-        data.forEach(user => {
-          table.innerHTML += `
-            <tr>
-              <td>${user.user_id}</td>
-              <td>${user.name}</td>
-              <td>${user.email}</td>
-              <td>${user.role}</td>
-            </tr>
-          `;
-        });
-      } catch (err) {
-        alert("Error loading staff data: " + err.message);
-      }
+      const res = await fetch("http://localhost:5000/api/users/staff");
+      const data = await res.json();
+      const table = document.getElementById("staffTableBody");
+      table.innerHTML = "";
+      data.forEach(user => {
+        table.innerHTML += `<tr><td>${user.user_id}</td><td>${user.name}</td><td>${user.email}</td><td>${user.role}</td></tr>`;
+      });
     }
 
-    window.onload = fetchStaff;
+ async function fetchPayroll() {
+  const status = document.getElementById("payrollStatus").value;
+  const url = status
+    ? `http://localhost:5000/api/payroll/list?status=${status}`
+    : `http://localhost:5000/api/payroll/list`;
+
+  const res = await fetch(url);
+  const data = await res.json();
+  const table = document.getElementById("payrollTableBody");
+  table.innerHTML = "";
+
+  if (!data.length) {
+    table.innerHTML = `<tr><td colspan="10" class="text-center text-muted">No records found</td></tr>`;
+    return;
+  }
+
+  let totalPay = 0;
+  let totalHours = 0;
+
+  data.forEach(p => {
+    const rate = parseFloat(p.hourly_rate || 0);
+    const hours = parseFloat(p.total_hours || 0);
+    const pay = rate * hours;
+
+    totalHours += hours;
+    totalPay += pay;
+
+    const badge = p.status === 'approved'
+      ? '<span class="badge text-bg-success">Approved</span>'
+      : '<span class="badge text-bg-warning text-dark">Pending</span>';
+
+    const approveButton = p.status === 'pending'
+      ? `<button class="btn btn-success btn-sm" onclick="approvePayroll(${p.payroll_id})">Approve</button>`
+      : '✔️';
+
+    table.innerHTML += `
+      <tr>
+        <td>${p.payroll_id}</td>
+        <td>${p.staff_name}</td>
+        <td>${p.email}</td>
+        <td>${p.week_start}</td>
+        <td>${p.week_end}</td>
+        <td>${rate.toFixed(2)}</td>
+        <td>${hours.toFixed(2)}</td>
+        <td>${pay.toFixed(2)}</td>
+        <td>${badge}</td>
+        <td>${approveButton}</td>
+      </tr>
+    `;
+  });
+
+  // ✅ Add summary row
+  table.innerHTML += `
+    <tr class="fw-bold bg-light">
+      <td colspan="6" class="text-end">Total Payroll:</td>
+      <td>${totalHours.toFixed(2)}</td>
+      <td>${totalPay.toFixed(2)}</td>
+      <td colspan="2"></td>
+    </tr>
+  `;
+}
+
+    async function approvePayroll(payroll_id) {
+      const confirmApprove = confirm("Approve this payroll?");
+      if (!confirmApprove) return;
+
+      const res = await fetch("http://localhost:5000/api/payroll/approve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ payroll_id, manager_id: 1 })
+      });
+
+      const data = await res.json();
+      alert(data.message);
+      fetchPayroll();
+    }
+
+    document.getElementById("generatePayrollForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      const week_start = document.getElementById("startWeek").value;
+      const week_end = document.getElementById("endWeek").value;
+
+      const res = await fetch("http://localhost:5000/api/payroll/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ week_start, week_end })
+      });
+
+      const data = await res.json();
+      alert(data.message);
+      fetchPayroll();
+    });
+
+    function exportPayroll() {
+      const rows = Array.from(document.querySelectorAll("#payrollTableBody tr"));
+      if (rows.length === 0) return alert("No data to export.");
+
+      let csv = "Payroll ID,Staff,Email,Week Start,Week End,Rate,Hours,Pay,Status\n";
+      rows.forEach(row => {
+        const cols = row.querySelectorAll("td");
+        csv += Array.from(cols).slice(0, 9).map(td => `"${td.textContent.trim()}"`).join(",") + "\n";
+      });
+
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "payroll_report.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    async function loadShiftChart() {
+      const res = await fetch("http://localhost:5000/api/reports/shifts");
+      const data = await res.json();
+      new Chart(document.getElementById("shiftChart"), {
+        type: "bar",
+        data: {
+          labels: ["Pending", "Completed", "Missed"],
+          datasets: [{
+            data: [data.pending, data.completed, data.missed],
+            backgroundColor: ["#fbbf24", "#10b981", "#ef4444"]
+          }]
+        }
+      });
+    }
+
+    async function loadAttendanceChart() {
+      const res = await fetch("http://localhost:5000/api/reports/attendance");
+      const data = await res.json();
+      new Chart(document.getElementById("attendanceChart"), {
+        type: "doughnut",
+        data: {
+          labels: ["Checked In", "Checked Out"],
+          datasets: [{
+            data: [data.checked_in, data.checked_out],
+            backgroundColor: ["#3b82f6", "#22c55e"]
+          }]
+        }
+      });
+    }
+
+    window.onload = () => {
+      fetchStaff();
+      fetchPayroll();
+      loadShiftChart();
+      loadAttendanceChart();
+    };
   </script>
-
-  <script>
-  async function fetchPayroll() {
-    const res = await fetch('http://localhost:5000/api/payroll/pending');
-    const data = await res.json();
-
-    const table = document.getElementById('payrollTableBody');
-    table.innerHTML = "";
-
-    data.forEach(record => {
-      table.innerHTML += `
-        <tr>
-          <td>${record.payroll_id}</td>
-          <td>${record.staff_name}</td>
-          <td>${record.email}</td>
-          <td>${record.week_start}</td>
-          <td>${record.week_end}</td>
-          <td>${record.total_hours}</td>
-          <td>${record.total_pay}</td>
-          <td><button class="btn btn-success btn-sm" onclick="approvePayroll(${record.payroll_id})">Approve</button></td>
-        </tr>
-      `;
-    });
-  }
-
-  async function approvePayroll(payrollId) {
-    const confirmApprove = confirm("Are you sure you want to approve this payroll?");
-    if (!confirmApprove) return;
-
-    const res = await fetch(`http://localhost:5000/api/payroll/approve/${payrollId}`, {
-      method: "POST",
-    });
-
-    const data = await res.json();
-    alert(data.message);
-    fetchPayroll(); // Refresh table
-  }
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-  async function loadShiftChart() {
-    const res = await fetch("http://localhost:5000/api/reports/shifts");
-    const data = await res.json();
-
-    const ctx = document.getElementById("shiftChart").getContext("2d");
-    new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: ["Pending", "Completed", "Missed"],
-        datasets: [{
-          label: "Shifts",
-          data: [data.pending, data.completed, data.missed],
-          backgroundColor: ["#fbbf24", "#10b981", "#ef4444"],
-        }],
-      },
-    });
-  }
-
-  async function loadAttendanceChart() {
-    const res = await fetch("http://localhost:5000/api/reports/attendance");
-    const data = await res.json();
-
-    const ctx = document.getElementById("attendanceChart").getContext("2d");
-    new Chart(ctx, {
-      type: "doughnut",
-      data: {
-        labels: ["Checked In", "Checked Out"],
-        datasets: [{
-          label: "Attendance",
-          data: [data.checked_in, data.checked_out],
-          backgroundColor: ["#3b82f6", "#22c55e"],
-        }],
-      },
-    });
-  }
-
-  window.onload = () => {
-    fetchStaff();           // This is your existing function for table
-    loadShiftChart();       // Load dynamic shift data
-    loadAttendanceChart();  // Load dynamic attendance data
-  };
-</script>
-
 
 </body>
 </html>

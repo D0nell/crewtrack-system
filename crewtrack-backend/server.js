@@ -1,16 +1,26 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-
-const authRoutes = require('./routes');
+const routes = require('./routes'); // ✅ make sure it's './routes' (without .js)
 
 const app = express();
+const PORT = 5000;
+
 app.use(cors());
 app.use(bodyParser.json());
 
-app.use('/api', authRoutes); // routes will be under /api/register and /api/login
+app.use('/api', routes); // ✅ Mount all routes under /api
 
-app.listen(5000, () => {
-  console.log('Server running on http://localhost:5000');
+// Test root route
+app.get('/', (req, res) => {
+  res.send('CrewTrack API is running!');
 });
 
+// 404 handler (keep this last)
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' });
+});
+
+app.listen(PORT, () => {
+  console.log(`✅ Server running at http://localhost:${PORT}`);
+});
