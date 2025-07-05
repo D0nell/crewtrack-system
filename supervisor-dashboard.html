@@ -65,6 +65,11 @@
           <input type="time" class="form-control" id="shiftEnd" required />
         </div>
         <div class="mb-3">
+  <label for="taskDescriptions" class="form-label">Tasks (one per line)</label>
+  <textarea class="form-control" id="taskDescriptions" rows="4" placeholder="e.g. Sweep floors&#10;Mop hallway&#10;Clean windows" required></textarea>
+</div>
+
+        <div class="mb-3">
           <label for="zone" class="form-label">Zone Assigned</label>
           <input type="text" class="form-control" id="zone" required />
         </div>
@@ -76,14 +81,17 @@
     <div class="section-card">
       <h4><i class="bi bi-geo-alt" style="color: #667eea; margin-right: 0.5rem;"></i>Attendance Monitoring</h4>
       <p>Track check-ins, check-outs, and housekeeper attendance in real time.</p>
-      <button class="btn btn-outline-primary" onclick="scrollToAttendance()">
-  <i class="bi bi-eye"></i> View Attendance
+  <button class="btn btn-outline-primary" onclick="toggleSection('attendance-section')">
+  <i class="bi bi-eye"></i> Toggle Attendance View
 </button>
+
+
+
 
     </div>
 
     <!-- Attendance Table -->
-<div class="section-card" id="attendance-section">
+<div class="section-card" id="attendance-section" style="display: none;">
   <h4><i class="bi bi-clock-history" style="color: #764ba2; margin-right: 0.5rem;"></i>Attendance Records</h4>
   <form id="attendanceFilterForm" class="row g-3 mb-3">
   <div class="col-md-4">
@@ -135,13 +143,17 @@
 
 
     <!-- Review Shift Completion -->
-   <div class="section-card">
+   <div class="section-card" id="completion-section">
   <h4>
     <i class="bi bi-check-circle" style="color: #667eea; margin-right: 0.5rem;"></i>
     Review Shift Completion
   </h4>
   <p>Check which tasks were completed and monitor shift performance.</p>
 
+  <button class="btn btn-outline-primary mb-3" onclick="toggleSection('completion-table-wrapper')">
+  <i class="bi bi-eye"></i> Toggle Shift Completion View
+</button>
+<div id="completion-table-wrapper" style="display: none;">
   <div class="table-responsive">
     <table class="table table-bordered table-hover" id="completedShiftsTable">
       <thead class="table-light">
@@ -173,38 +185,46 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <!-- Shift Assignment Logic -->
-  <script>
-    document.getElementById('assignShiftForm').addEventListener('submit', async function (e) {
-      e.preventDefault();
+ <script>
+  document.getElementById('assignShiftForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
 
-      const payload = {
-        user_id: document.getElementById('userId').value,
-        shift_date: document.getElementById('shiftDate').value,
-        shift_start: document.getElementById('shiftStart').value,
-        shift_end: document.getElementById('shiftEnd').value,
-        zone_assigned: document.getElementById('zone').value
-      };
+    // Gather and clean up task descriptions
+    const rawTasks = document.getElementById('taskDescriptions').value
+      .split('\n')                 // Split by line
+      .map(task => task.trim())    // Trim whitespace
+      .filter(task => task !== ''); // Exclude empty lines
 
-      try {
-        const res = await fetch('http://localhost:5000/api/shifts/assign', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
+    // Construct the payload
+    const payload = {
+      user_id: document.getElementById('userId').value,
+      shift_date: document.getElementById('shiftDate').value,
+      shift_start: document.getElementById('shiftStart').value,
+      shift_end: document.getElementById('shiftEnd').value,
+      zone_assigned: document.getElementById('zone').value,
+      tasks: rawTasks // ✅ This matches what the backend expects
+    };
 
-        const data = await res.json();
-        if (res.ok) {
-          alert(data.message);
-          document.getElementById('assignShiftForm').reset();
-        } else {
-          alert('Error: ' + data.error);
-        }
-      } catch (err) {
-        alert('Something went wrong while assigning shift.');
-        console.error(err);
+    try {
+      const res = await fetch('http://localhost:5000/api/shifts/assign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message);
+        document.getElementById('assignShiftForm').reset(); // Clear the form
+      } else {
+        alert('❌ Error: ' + data.error);
       }
-    });
-  </script>
+    } catch (err) {
+      alert('❌ Something went wrong while assigning shift.');
+      console.error(err);
+    }
+  });
+</script>
 
   <script>
   async function loadAttendanceRecords() {
@@ -266,40 +286,69 @@
     console.error("Failed to load user list:", err);
   }
 }
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('attendanceFilterForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
 
-document.getElementById('attendanceFilterForm').addEventListener('submit', async function (e) {
-  e.preventDefault();
+    const user_id = document.getElementById('filterUser').value;
+    const start_date = document.getElementById('startDate').value;
+    const end_date = document.getElementById('endDate').value;
 
-  const user_id = document.getElementById('filterUser').value;
-  const start_date = document.getElementById('startDate').value;
-  const end_date = document.getElementById('endDate').value;
+    if (!start_date || !end_date) {
+      alert("Please select both start and end dates.");
+      return;
+    }
+
+    const start = new Date(start_date);
+    const end = new Date(end_date);
+    const diffInDays = (end - start) / (1000 * 60 * 60 * 24);
+
+    if (diffInDays > 7) {
+      alert("Please select a date range of 7 days or less.");
+      return;
+    }
 
   try {
-    const res = await fetch(`http://localhost:5000/api/attendance/all?user_id=${user_id}&start=${start_date}&end=${end_date}`);
-    const data = await res.json();
-    const tbody = document.getElementById('attendanceTableBody');
-    tbody.innerHTML = "";
+      const res = await fetch(`http://localhost:5000/api/attendance/all?user_id=${user_id}&start=${start_date}&end=${end_date}`);
+      const data = await res.json();
 
-    if (data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No records found.</td></tr>`;
-    } else {
-      data.forEach(entry => {
-        tbody.innerHTML += `
-          <tr>
+        console.log("Attendance filter button clicked");
+console.log("Fetched attendance data:", data);
+console.log("Sample entry structure:", data[0]);
+
+
+      const tbody = document.getElementById('attendanceTableBody');
+      tbody.innerHTML = ""; // Clear previous content
+
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No records found.</td></tr>`;
+      } else {
+        data.forEach(entry => {
+          const row = document.createElement('tr');
+
+          row.innerHTML = `
             <td>${entry.user_name}</td>
             <td>${entry.zone_assigned}</td>
             <td>${new Date(entry.shift_date).toLocaleDateString()}</td>
             <td>${entry.shift_start} - ${entry.shift_end}</td>
             <td>${entry.check_in ? new Date(entry.check_in).toLocaleTimeString() : '—'}</td>
             <td>${entry.check_out ? new Date(entry.check_out).toLocaleTimeString() : '—'}</td>
-          </tr>
-        `;
-      });
+          `;
+
+          tbody.appendChild(row); // ✅ More reliable than +=
+        });
+      }
+
+      // ✅ Ensure table is visible in case it was toggled off
+      document.getElementById('attendance-section').style.display = 'block';
+
+    } catch (err) {
+      console.error("Error filtering attendance:", err);
     }
-  } catch (err) {
-    console.error("Error filtering attendance:", err);
-  }
+  });
 });
+
+
 
 
   // Auto-load attendance when the page loads
@@ -308,46 +357,6 @@ document.getElementById('attendanceFilterForm').addEventListener('submit', async
   fetchCompletedShifts();
   populateUsers(); // <-- add this
 };
-
-</script>
-
-<script>
-async function fetchCompletedShifts() {
-  try {
-    const res = await fetch('http://localhost:5000/api/shifts/completed');
-    const data = await res.json();
-
-    const container = document.getElementById('completedShifts');
-    if (data.length === 0) {
-      container.innerHTML = '<p class="text-muted text-center">📭 No completed shifts found.</p>';
-      return;
-    }
-
-    data.forEach(shift => {
-      const taskList = shift.tasks.map(task =>
-        `<li class="list-group-item d-flex justify-content-between align-items-center">
-          ${task.description}
-          <span class="badge ${task.completed ? 'bg-success' : 'bg-secondary'}">
-            ${task.completed ? 'Done' : 'Pending'}
-          </span>
-        </li>`
-      ).join('');
-
-      container.innerHTML += `
-        <div class="card mb-4">
-          <div class="card-body">
-            <h5 class="card-title">${shift.shift_date} | ${shift.zone_assigned}</h5>
-            <p><strong>Time:</strong> ${shift.shift_start} - ${shift.shift_end}</p>
-            <p><strong>Housekeeper:</strong> ${shift.housekeeper}</p>
-            <ul class="list-group">${taskList}</ul>
-          </div>
-        </div>
-      `;
-    });
-  } catch (err) {
-    console.error("Failed to load completed shifts:", err);
-  }
-}
 
 </script>
 
@@ -361,44 +370,75 @@ async function fetchCompletedShifts() {
 </script>
 
 <script>
-  // Function to populate completed shifts into the existing table body
+  // Fetch and render completed shifts in the table layout
+  async function fetchCompletedShifts() {
+    try {
+      const res = await fetch('http://localhost:5000/api/shifts/completed');
+      const data = await res.json();
+      console.log('Fetched data:', data); // ✅ Add this line to inspect the response
+      renderCompletedShifts(data);
+    } catch (error) {
+      console.error('Error loading completed shifts:', error);
+      const tbody = document.getElementById('completedShiftsBody');
+      tbody.innerHTML = `<tr><td colspan="6" class="text-danger">Failed to load shift data.</td></tr>`;
+    }
+  }
+
+  // Render function for table layout
+  function formatTimeRange(startTime, endTime) {
+  const [startHour, startMin] = startTime.split(':');
+  const [endHour, endMin] = endTime.split(':');
+
+  const start = new Date();
+  start.setHours(+startHour, +startMin, 0);
+
+  const end = new Date();
+  end.setHours(+endHour, +endMin, 0);
+
+  const options = { hour: 'numeric', minute: '2-digit' };
+  return `${start.toLocaleTimeString([], options)} – ${end.toLocaleTimeString([], options)}`;
+}
+
   function renderCompletedShifts(data) {
     const tbody = document.getElementById('completedShiftsBody');
     tbody.innerHTML = '';
 
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="text-muted text-center">📭 No completed shifts found.</td></tr>`;
+      return;
+    }
+
     data.forEach(shift => {
-      const row = document.createElement('tr');
-
-      row.innerHTML = `
-      <td>${shift.user_name}</td>
-      <td>${shift.shift_date}</td>
-      <td>${shift.shift_start} - ${shift.shift_end}</td>
-      <td>${shift.zone_assigned}</td>
-      <td>${shift.check_in || 'N/A'}</td>
-      <td>${shift.check_out || 'N/A'}</td>
-    `;
-
+    const row = document.createElement('tr');
+  row.innerHTML = `
+  <td>${shift.user_name}</td>
+  <td>${shift.shift_date}</td>
+  <td>${formatTimeRange(shift.shift_start, shift.shift_end)}</td>
+  <td>${shift.zone_assigned}</td>
+  <td>${shift.tasks_completed || '—'}</td>
+  <td>${shift.tasks_pending || '—'}</td>
+`;
 
       tbody.appendChild(row);
     });
   }
 
-  // Fetch real data when the page loads
+  // Load on DOM ready
   document.addEventListener('DOMContentLoaded', () => {
-  fetch('http://localhost:5000/shifts/completed') // use full URL
-    .then(response => response.json())
-    .then(data => {
-      console.log('Fetched data:', data); // 👈 log here
-      renderCompletedShifts(data);
-    })
-    .catch(error => {
-      console.error('Error loading completed shifts:', error);
-      const tbody = document.getElementById('completedShiftsBody');
-      tbody.innerHTML = `<tr><td colspan="6" class="text-danger">Failed to load shift data.</td></tr>`;
-    });
-});
-
+    fetchCompletedShifts();
+  });
 </script>
+
+<script>
+  function toggleSection(id) {
+    const section = document.getElementById(id);
+    if (section) {
+      section.style.display = (section.style.display === 'none' || section.style.display === '') ? 'block' : 'none';
+    }
+  }
+</script>
+
+
 
 
 </body>

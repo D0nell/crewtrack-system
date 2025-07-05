@@ -267,11 +267,19 @@
         }
 
         // Time formatting
-        const formatTime = (t) => {
-          if (!t) return 'N/A';
-          const date = new Date(`1970-01-01T${t}Z`);
-          return isNaN(date) ? 'N/A' : date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-        };
+  const formatTime = (t) => {
+  if (!t) return 'N/A';
+  const [hours, minutes] = t.split(':').map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0); // set time on today's date (local time)
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
+};
+
+
 
         const start = formatTime(shift.shift_start);
         const end = formatTime(shift.shift_end);

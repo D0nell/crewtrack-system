@@ -73,19 +73,21 @@
 
 
 
-    <!-- Staff Overview -->
-    <div class="section-card">
-      <h4>👥 Staff Overview</h4>
-      <button class="btn-action mb-3" onclick="fetchStaff()">View Staff</button>
-      <div class="table-responsive">
-        <table class="table table-bordered table-hover">
-          <thead class="table-light">
-            <tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th></tr>
-          </thead>
-          <tbody id="staffTableBody"></tbody>
-        </table>
-      </div>
-    </div>
+   <!-- Staff Overview -->
+<div class="section-card">
+  <h4>👥 Staff Overview</h4>
+  <button id="toggleStaffBtn" class="btn-action mb-3" onclick="toggleStaff()">View Staff</button>
+
+  <div id="staffSection" class="table-responsive" style="display: none;">
+    <table class="table table-bordered table-hover">
+      <thead class="table-light">
+        <tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th></tr>
+      </thead>
+      <tbody id="staffTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
 
     <!-- Payroll Section -->
     <div class="section-card">
@@ -120,12 +122,13 @@
           <thead class="table-light">
             <tr>
               <th>ID</th><th>Name</th><th>Email</th><th>Start</th><th>End</th>
-              <th>Rate (KES)</th><th>Hours</th><th>Pay</th><th>Status</th><th>Action</th>
+              <th>Rate (KES)</th><th>Hours</th><th>Pay</th><th>Status</th><th>Comment</th><th>Action</th>
             </tr>
           </thead>
           <tbody id="payrollTableBody"></tbody>
         </table>
-        <small class="text-muted">*Pay = Total Hours × Hourly Rate (KES)</small>
+        <small class="text-muted">*Pay = Fixed at 5000 KES/week regardless of hours worked</small>
+
       </div>
     </div>
 
@@ -150,6 +153,20 @@
         table.innerHTML += `<tr><td>${user.user_id}</td><td>${user.name}</td><td>${user.email}</td><td>${user.role}</td></tr>`;
       });
     }
+   function toggleStaff() {
+  const section = document.getElementById('staffSection');
+  const button = document.getElementById('toggleStaffBtn');
+
+  if (section.style.display === 'none') {
+    section.style.display = 'block';
+    button.textContent = "Hide Staff";
+    fetchStaff(); // Only fetch when showing
+  } else {
+    section.style.display = 'none';
+    button.textContent = "View Staff";
+  }
+}
+ 
 
  async function fetchPayroll() {
   const status = document.getElementById("payrollStatus").value;
@@ -170,37 +187,54 @@
   let totalPay = 0;
   let totalHours = 0;
 
-  data.forEach(p => {
-    const rate = parseFloat(p.hourly_rate || 0);
-    const hours = parseFloat(p.total_hours || 0);
-    const pay = rate * hours;
+data.forEach(p => {
+  const rate = parseFloat(p.hourly_rate || 0);
+  const rawHours = parseFloat(p.total_hours || 0);
+  const hours = Math.max(0.01, rawHours); // ensure even short shifts are visible
+  const pay = 5000;
 
-    totalHours += hours;
-    totalPay += pay;
 
-    const badge = p.status === 'approved'
-      ? '<span class="badge text-bg-success">Approved</span>'
-      : '<span class="badge text-bg-warning text-dark">Pending</span>';
+  totalHours += hours;
+  totalPay += pay;
 
-    const approveButton = p.status === 'pending'
-      ? `<button class="btn btn-success btn-sm" onclick="approvePayroll(${p.payroll_id})">Approve</button>`
-      : '✔️';
+ const badge = p.status === 'approved'
+  ? '<span class="badge text-bg-success">Approved</span>'
+  : p.status === 'rejected'
+  ? '<span class="badge text-bg-danger">Rejected</span>'
+  : '<span class="badge text-bg-warning text-dark">Pending</span>';
 
-    table.innerHTML += `
-      <tr>
-        <td>${p.payroll_id}</td>
-        <td>${p.staff_name}</td>
-        <td>${p.email}</td>
-        <td>${p.week_start}</td>
-        <td>${p.week_end}</td>
-        <td>${rate.toFixed(2)}</td>
-        <td>${hours.toFixed(2)}</td>
-        <td>${pay.toFixed(2)}</td>
-        <td>${badge}</td>
-        <td>${approveButton}</td>
-      </tr>
-    `;
-  });
+const actionButtons = p.status === 'pending'
+  ? `
+    <button class="btn btn-success btn-sm me-1" onclick="openApprovalModal(${p.payroll_id})">Approve</button>
+    <button class="btn btn-danger btn-sm" onclick="openRejectionModal(${p.payroll_id})">Reject</button>
+  `
+  : '✔️';
+
+const comment = p.status === 'approved'
+  ? (p.approval_comment || '-')
+  : p.status === 'rejected'
+  ? (p.rejection_comment || '-')
+  : '-';
+
+
+  table.innerHTML += `
+  <tr>
+    <td>${p.payroll_id}</td>
+    <td>${p.staff_name}</td>
+    <td>${p.email}</td>
+    <td>${p.week_start}</td>
+    <td>${p.week_end}</td>
+    <td>${rate.toFixed(2)}</td>
+    <td>${hours.toFixed(2)}</td>
+    <td>${pay.toFixed(2)}</td>
+    <td>${badge}</td>
+    <td>${comment}</td>
+    <td>${actionButtons}</td>
+  </tr>
+`;
+
+});
+
 
   // ✅ Add summary row
   table.innerHTML += `
@@ -212,6 +246,41 @@
     </tr>
   `;
 }
+
+async function viewLogs(user_id, start, end) {
+  const url = `http://localhost:5000/api/payroll/logs?user_id=${user_id}&start=${start}&end=${end}`;
+  const res = await fetch(url);
+  const data = await res.json();
+
+  const tbody = document.getElementById("payrollLogsBody");
+  tbody.innerHTML = "";
+
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No logs available for this period</td></tr>`;
+  } else {
+    data.forEach(log => {
+      const checkIn = log.check_in ? new Date(log.check_in).toLocaleString() : "-";
+      const checkOut = log.check_out ? new Date(log.check_out).toLocaleString() : "-";
+      const duration = log.check_in && log.check_out
+        ? Math.round((new Date(log.check_out) - new Date(log.check_in)) / 60000)
+        : "-";
+      tbody.innerHTML += `
+        <tr>
+          <td>${log.shift_date}</td>
+          <td>${log.shift_id}</td>
+          <td>${checkIn}</td>
+          <td>${checkOut}</td>
+          <td>${duration}</td>
+        </tr>
+      `;
+    });
+  }
+
+  // Show the modal (Bootstrap 5)
+  const modal = new bootstrap.Modal(document.getElementById('payrollLogsModal'));
+  modal.show();
+}
+
 
     async function approvePayroll(payroll_id) {
       const confirmApprove = confirm("Approve this payroll?");
@@ -243,6 +312,84 @@
       alert(data.message);
       fetchPayroll();
     });
+
+    function openApprovalModal(payroll_id) {
+  document.getElementById('approvalPayrollId').value = payroll_id;
+  document.getElementById('approvalComment').value = '';
+  const modal = new bootstrap.Modal(document.getElementById('approvalModal'));
+  modal.show();
+}
+
+function openRejectionModal(payroll_id) {
+  document.getElementById('rejectionPayrollId').value = payroll_id;
+  document.getElementById('rejectionComment').value = '';
+  const modal = new bootstrap.Modal(document.getElementById('rejectionModal'));
+  modal.show();
+}
+
+async function submitRejection() {
+  const payroll_id = document.getElementById('rejectionPayrollId').value;
+  const comment = document.getElementById('rejectionComment').value;
+
+  if (!comment.trim()) {
+    alert("Rejection comment is required.");
+    return;
+  }
+
+  const res = await fetch("http://localhost:5000/api/payroll/approve", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      payroll_id,
+      manager_id: 1,
+      rejection_comment: comment,
+      action: 'reject'
+    })
+  });
+
+  const data = await res.json();
+  alert(data.message);
+
+  bootstrap.Modal.getInstance(document.getElementById('rejectionModal')).hide();
+  fetchPayroll();
+}
+
+
+async function submitApproval() {
+  const payroll_id = document.getElementById('approvalPayrollId').value;
+  const comment = document.getElementById('approvalComment').value;
+
+  try {
+    const res = await fetch("http://localhost:5000/api/payroll/approve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        payroll_id,
+        manager_id: 3,
+        approval_comment: comment,
+        action: 'approve'
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || "Server returned an error.");
+    }
+
+    alert(data.message);
+
+    // Close modal + refresh table
+    bootstrap.Modal.getInstance(document.getElementById('approvalModal')).hide();
+    fetchPayroll();
+
+  } catch (err) {
+    console.error("Approval failed:", err.message);
+    alert(err.message || "Approval failed unexpectedly.");
+  }
+}
+
+
 
     function exportPayroll() {
       const rows = Array.from(document.querySelectorAll("#payrollTableBody tr"));
@@ -295,12 +442,76 @@
     }
 
     window.onload = () => {
-      fetchStaff();
+      
       fetchPayroll();
       loadShiftChart();
       loadAttendanceChart();
     };
   </script>
+
+<!-- Payroll Logs Modal -->
+<div class="modal fade" id="payrollLogsModal" tabindex="-1" aria-labelledby="payrollLogsLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="payrollLogsLabel">Shift Logs</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-bordered">
+          <thead class="table-light">
+            <tr><th>Date</th><th>Shift ID</th><th>Check-In</th><th>Check-Out</th><th>Duration (min)</th></tr>
+          </thead>
+          <tbody id="payrollLogsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Approval Comment Modal -->
+<div class="modal fade" id="approvalModal" tabindex="-1" aria-labelledby="approvalModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="approvalModalLabel">Approve Payroll with Comment</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <textarea id="approvalComment" class="form-control" placeholder="Enter optional approval comment..." rows="4"></textarea>
+        <input type="hidden" id="approvalPayrollId">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" onclick="submitApproval()">Approve</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Rejection Comment Modal -->
+<div class="modal fade" id="rejectionModal" tabindex="-1" aria-labelledby="rejectionModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="rejectionModalLabel">Reject Payroll with Comment</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <textarea id="rejectionComment" class="form-control" placeholder="Enter rejection reason..." rows="4" required></textarea>
+        <input type="hidden" id="rejectionPayrollId">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" onclick="submitRejection()">Reject</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap JS Bundle (includes Popper.js) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 
 </body>
 </html>

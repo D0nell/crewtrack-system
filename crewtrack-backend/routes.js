@@ -19,12 +19,18 @@ router.get('/shifts/completed', (req, res) => {
       s.shift_start,
       s.shift_end,
       s.status,
-      a.check_in,
-      a.check_out
+      MAX(a.check_in) AS check_in,     -- ✅ fixed
+      MAX(a.check_out) AS check_out,   -- ✅ fixed
+      COUNT(CASE WHEN t.completed = 1 THEN 1 END) AS tasks_completed,
+      COUNT(CASE WHEN t.completed = 0 THEN 1 END) AS tasks_pending
     FROM shifts s
     JOIN users u ON s.user_id = u.user_id
     LEFT JOIN attendance a ON s.shift_id = a.shift_id
+    LEFT JOIN tasks t ON s.shift_id = t.shift_id
     WHERE s.status = 'completed'
+    GROUP BY 
+      s.shift_id, u.name, s.zone_assigned, 
+      s.shift_date, s.shift_start, s.shift_end, s.status
     ORDER BY s.shift_date DESC, s.shift_start DESC
   `;
 
@@ -33,6 +39,7 @@ router.get('/shifts/completed', (req, res) => {
     res.json(results);
   });
 });
+
 
 // ---------------- USER AUTH ----------------
 
@@ -138,9 +145,16 @@ router.post('/attendance/checkout', (req, res) => {
     }
 
     db.query(`UPDATE shifts SET status = 'completed' WHERE shift_id = ?`, [shift_id], (err2) => {
-      if (err2) return res.status(500).json({ error: err2.message });
-      res.json({ message: 'Checked out. Shift completed.' });
-    });
+  if (err2) return res.status(500).json({ error: err2.message });
+
+  // ✅ Also update all tasks for this shift to completed
+  db.query(`UPDATE tasks SET completed = 1 WHERE shift_id = ?`, [shift_id], (err3) => {
+    if (err3) return res.status(500).json({ error: err3.message });
+
+    res.json({ message: 'Checked out. Shift and tasks marked completed.' });
+  });
+});
+
   });
 });
 
@@ -174,40 +188,61 @@ router.get('/attendance/history', (req, res) => {
 
 router.post('/payroll/generate', (req, res) => {
   const { week_start, week_end } = req.body;
+
   const query = `
     SELECT 
-      a.user_id, u.name, u.hourly_rate,
-      SUM(TIMESTAMPDIFF(SECOND, a.check_in, a.check_out)) AS total_seconds
+      a.user_id, u.name
     FROM attendance a
     JOIN users u ON a.user_id = u.user_id
     JOIN shifts s ON a.shift_id = s.shift_id
-    WHERE s.shift_date BETWEEN ? AND ? 
+    WHERE s.shift_date BETWEEN ? AND ?
       AND a.check_in IS NOT NULL AND a.check_out IS NOT NULL
-    GROUP BY a.user_id
   `;
 
   db.query(query, [week_start, week_end], (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     if (results.length === 0) return res.json({ message: 'No data to generate payroll' });
 
-    const payrolls = results.map(row => {
-      const hours = parseFloat((row.total_seconds / 3600).toFixed(2));
-      const rate = row.hourly_rate || 200;
-      const pay = parseFloat((hours * rate).toFixed(2));
-
-      return [row.user_id, week_start, week_end, hours, pay, 'pending'];
+    // Count valid check-in/out sessions per user
+    const userShiftMap = {};
+    results.forEach(row => {
+      if (!userShiftMap[row.user_id]) {
+        userShiftMap[row.user_id] = 0;
+      }
+      userShiftMap[row.user_id] += 1; // Each valid session = 1 full hour
     });
 
-    db.query(
-      `INSERT INTO payroll (user_id, week_start, week_end, total_hours, total_pay, status) VALUES ?`,
-      [payrolls],
-      (err2) => {
-        if (err2) return res.status(500).json({ error: err2.message });
-        res.json({ message: 'Payroll generated successfully.', count: payrolls.length });
-      }
-    );
+    const payrolls = Object.entries(userShiftMap).map(([user_id, hours]) => [
+      parseInt(user_id),
+      week_start,
+      week_end,
+      hours,      // Total hours = number of valid check-in/out sessions
+      5000,       // Fixed weekly pay
+      'pending'   // Reset status
+    ]);
+
+    const insertQuery = `
+      INSERT INTO payroll (user_id, week_start, week_end, total_hours, total_pay, status)
+      VALUES ?
+      ON DUPLICATE KEY UPDATE 
+        total_hours = VALUES(total_hours),
+        total_pay = VALUES(total_pay),
+        status = 'pending',
+        approved_by = NULL,
+        approval_comment = NULL,
+        rejected_by = NULL,
+        rejection_comment = NULL,
+        approval_time = NULL,
+        rejection_time = NULL
+    `;
+
+    db.query(insertQuery, [payrolls], (err2, result) => {
+      if (err2) return res.status(500).json({ error: err2.message });
+      res.json({ message: 'Payroll generated and updated successfully.', count: result.affectedRows });
+    });
   });
 });
+
 
 router.get('/payroll/list', (req, res) => {
   const { status, user_id, start, end } = req.query;
@@ -233,31 +268,103 @@ router.get('/payroll/list', (req, res) => {
 });
 
 router.post('/payroll/approve', (req, res) => {
-  const { payroll_id, manager_id } = req.body;
+  const {
+    payroll_id,
+    manager_id,
+    approval_comment,
+    rejection_comment,
+    action // either 'approve' or 'reject'
+  } = req.body;
 
-  db.query(
-    `UPDATE payroll SET status = 'approved', approved_by = ? WHERE payroll_id = ?`,
-    [manager_id, payroll_id],
-    (err) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({ message: 'Payroll approved successfully.' });
+  if (!payroll_id || !manager_id || !action) {
+    return res.status(400).json({ error: 'Missing required fields.' });
+  }
+
+  const newStatus = action === 'reject' ? 'rejected' : 'approved';
+  const timestampField = action === 'reject' ? 'rejection_time' : 'approval_time';
+  const commentField = action === 'reject' ? 'rejection_comment' : 'approval_comment';
+  const managerField = action === 'reject' ? 'rejected_by' : 'approved_by';
+  const comment = action === 'reject' ? rejection_comment : approval_comment;
+
+  // Prevent re-approval or re-rejection
+  const checkQuery = `SELECT status FROM payroll WHERE payroll_id = ?`;
+  db.query(checkQuery, [payroll_id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!results.length) return res.status(404).json({ error: 'Payroll entry not found.' });
+
+    const currentStatus = results[0].status;
+    if (currentStatus === 'approved' || currentStatus === 'rejected') {
+      return res.status(400).json({ error: `This payroll is already ${currentStatus}.` });
     }
-  );
+
+    const updateQuery = `
+      UPDATE payroll
+      SET status = ?, ${managerField} = ?, ${commentField} = ?, ${timestampField} = NOW()
+      WHERE payroll_id = ?
+    `;
+
+    db.query(updateQuery, [newStatus, manager_id, comment || null, payroll_id], (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      const successMsg = newStatus === 'approved' ? 'Payroll approved successfully.' : 'Payroll rejected successfully.';
+      res.json({ message: successMsg });
+    });
+  });
 });
+
+
+
+
+// GET /api/payroll/logs?user_id=5&start=2025-06-23&end=2025-06-28
+router.get('/payroll/logs', (req, res) => {
+  const { user_id, start, end } = req.query;
+
+  const query = `
+    SELECT 
+      a.attendance_id, s.shift_id, s.shift_date, a.check_in, a.check_out,
+      TIMESTAMPDIFF(MINUTE, a.check_in, a.check_out) AS duration_minutes
+    FROM attendance a
+    JOIN shifts s ON a.shift_id = s.shift_id
+    WHERE a.user_id = ? 
+      AND s.shift_date BETWEEN ? AND ?
+      AND a.check_in IS NOT NULL AND a.check_out IS NOT NULL
+    ORDER BY s.shift_date ASC
+  `;
+
+  db.query(query, [user_id, start, end], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
 
 // ---------------- SHIFTS ----------------
 
 router.post('/shifts/assign', (req, res) => {
-  const { user_id, shift_date, shift_start, shift_end, zone_assigned } = req.body;
+  const { user_id, shift_date, shift_start, shift_end, zone_assigned, tasks } = req.body;
 
-  const query = `
+  if (!Array.isArray(tasks) || tasks.length === 0) {
+    return res.status(400).json({ error: "Please include at least one task." });
+  }
+
+  const insertShift = `
     INSERT INTO shifts (user_id, shift_date, shift_start, shift_end, zone_assigned, status)
     VALUES (?, ?, ?, ?, ?, 'pending')
   `;
 
-  db.query(query, [user_id, shift_date, shift_start, shift_end, zone_assigned], (err) => {
+  db.query(insertShift, [user_id, shift_date, shift_start, shift_end, zone_assigned], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.json({ message: 'Shift assigned successfully.' });
+
+    const shift_id = result.insertId;
+
+    // Build bulk task insert
+    const taskValues = tasks.map(desc => [shift_id, desc.trim(), 0]);
+    const insertTasks = `INSERT INTO tasks (shift_id, description, completed) VALUES ?`;
+
+    db.query(insertTasks, [taskValues], (taskErr) => {
+      if (taskErr) return res.status(500).json({ error: taskErr.message });
+      res.json({ message: 'Shift and tasks assigned successfully.' });
+    });
   });
 });
 
@@ -373,7 +480,9 @@ router.get('/shifts/next/:user_id', (req, res) => {
 
 // Get all attendance records (for Supervisor view)
 router.get('/attendance/all', (req, res) => {
-  const query = `
+  const { user_id, start, end } = req.query;
+
+  let query = `
     SELECT 
       a.attendance_id,
       u.name AS user_name,
@@ -386,10 +495,24 @@ router.get('/attendance/all', (req, res) => {
     FROM attendance a
     JOIN users u ON a.user_id = u.user_id
     JOIN shifts s ON a.shift_id = s.shift_id
-    ORDER BY s.shift_date DESC, s.shift_start DESC
+    WHERE 1 = 1
   `;
 
-  db.query(query, (err, results) => {
+  const params = [];
+
+  if (user_id) {
+    query += ` AND a.user_id = ?`;
+    params.push(user_id);
+  }
+
+  if (start && end) {
+    query += ` AND DATE(s.shift_date) BETWEEN ? AND ?`;
+    params.push(start, end);
+  }
+
+  query += ` ORDER BY s.shift_date DESC, s.shift_start DESC`;
+
+  db.query(query, params, (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(results);
   });
